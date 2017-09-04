@@ -1,4 +1,6 @@
-﻿namespace Onvista.Parser
+﻿using System.Data.Linq.Mapping;
+
+namespace Onvista.Parser
 {
     public class Article
     {
@@ -11,10 +13,17 @@
             Content = content;
         }
 
+        public Article()
+        {
+        }
+
+        public int Id { get; set; }
+
         public string Analysis { get; set; }
 
         public string Title { get; set; }
 
+        [Column(Name = "created_at")]
         public string CreatedAt { get; set; }
 
         public string Author { get; set; }

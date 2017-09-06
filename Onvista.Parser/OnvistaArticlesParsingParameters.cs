@@ -20,12 +20,22 @@ namespace Onvista.Parser
             {
                 var dictionary = ParseArgs(args).ToDictionary(x => x.Key.ToLower(), x => x.Value);
 
-                PagesToParse = dictionary.TryGetValue(nameof(PagesToParse).ToLower(), out string pagesToParse) ? (int?)int.Parse(pagesToParse) : null;
-                RequestDelayMs = dictionary.TryGetValue(nameof(RequestDelayMs).ToLower(), out string requestDelayMs) ? int.Parse(requestDelayMs) : DefaultRequestDelay;
-                NewsUrl = dictionary.TryGetValue(nameof(NewsUrl).ToLower(), out string newsUrl) ? newsUrl : DefaultNewsUrl;
+                PagesToParse = dictionary.TryGetValue(nameof(PagesToParse).ToLower(), out string pagesToParseString) 
+                    && int.TryParse(pagesToParseString, out int pagesToParse) 
+                    ? (int?)pagesToParse : null;
+
+                RequestDelayMs = dictionary.TryGetValue(nameof(RequestDelayMs).ToLower(), out string requestDelayMsString) 
+                    && int.TryParse(requestDelayMsString, out int requestDelayMs) 
+                    ? requestDelayMs : DefaultRequestDelay;
+
+                NewsUrl = dictionary.TryGetValue(nameof(NewsUrl).ToLower(), out string newsUrl) 
+                    ? newsUrl : DefaultNewsUrl;
+
                 StopParsingOnExisting = !dictionary.TryGetValue(nameof(StopParsingOnExisting).ToLower(), out string stopParsingOnExisting)
                                         || string.Equals(stopParsingOnExisting, "true", StringComparison.InvariantCultureIgnoreCase);
-                SkipPages = dictionary.TryGetValue(nameof(SkipPages).ToLower(), out string skipPages) ? int.Parse(skipPages) : 0;
+
+                SkipPages = dictionary.TryGetValue(nameof(SkipPages).ToLower(), out string skipPages) 
+                    ? int.Parse(skipPages) : 0;
             }
 
         }

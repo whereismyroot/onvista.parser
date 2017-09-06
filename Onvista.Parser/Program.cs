@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Dapper.FluentMap;
 using Onvista.Parser.Data;
@@ -30,21 +32,25 @@ namespace Onvista.Parser
             if (pendingForSave.Count > 0)
             {
                 Console.WriteLine("Saving parser results...");
-                parser.SaveParsingResults(pendingForSave);
+                bool isSuccess = parser.SaveParsingResults(pendingForSave);
+
+                if (!isSuccess)
+                {
+                    SaveParsedArticlesToCsv(newsArticles);
+                }
 
                 Console.WriteLine("Done");
             }
+        }
 
-            //$"Error: {newsArticles.Count(x => x.ResultType == ParsingResultType.Error)} "
+        private static void SaveParsedArticlesToCsv(ICollection<ParsingResult<Article>> articles)
+        {
+            string csv = new CsvWrapper(articles).GetCsv();
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"articles-{DateTime.Now:dd.MM.yy HH.mm}.csv");
 
-            //string csv = new CsvWrapper(newsArticles).GetCsv();
-            //string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"articles-{DateTime.Now:dd.MM.yy HH.mm}.csv");
+            File.WriteAllText(filePath, csv);
 
-            //File.WriteAllText(filePath, csv);
-
-            //Console.WriteLine($"Results were written to {filePath}");
-
-
+            Console.WriteLine($"Results were written to {filePath}");
         }
     }
 }

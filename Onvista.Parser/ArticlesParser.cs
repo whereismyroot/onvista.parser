@@ -97,24 +97,31 @@ namespace Onvista.Parser
             return resultArticles;
         }
 
-        public void SaveParsingResults(List<ParsingResult<Article>> parsingResults)
+        public bool SaveParsingResults(List<ParsingResult<Article>> parsingResults)
         {
+            bool success = false;
+
             try
             {
                 var resultsToSave = parsingResults.Where(x => x.ResultType == ParsingResultType.PendingForSave).ToList();
 
                 foreach (var parsingResult in resultsToSave)
                 {
-                    parsingResult.Entity.CreatedAt = DateTime.ParseExact(parsingResult.Entity.CreatedAt, ArticleDateFormat, CultureInfo.InvariantCulture).ToString(MySqlDateFormat);
+                    parsingResult.Entity.CreatedAt = DateTime.ParseExact(parsingResult.Entity.CreatedAt, ArticleDateFormat, CultureInfo.InvariantCulture)
+                        .ToString(MySqlDateFormat);
+
                     _articlesRepository.Insert(parsingResult.Entity);
                 }
 
+                success = true;
                 _logger.LogInformation($"{resultsToSave.Count} records were saved");
             }
             catch (Exception ex)
             {
                 _logger.LogError("Error while saving parser records", ex);
             }
+
+            return success;
         }
 
         private void RefreshExistingArticles()

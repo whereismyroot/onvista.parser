@@ -5,10 +5,10 @@ namespace Onvista.Parser
 {
     public class CsvWrapper
     {
-        private readonly ICollection<Article> _articles;
+        private readonly ICollection<ParsingResult<Article>> _articles;
         private const string Delimiter = ",";
 
-        public CsvWrapper(ICollection<Article> articles)
+        public CsvWrapper(ICollection<ParsingResult<Article>> articles)
         {
             _articles = articles;
         }
@@ -21,7 +21,7 @@ namespace Onvista.Parser
 
             foreach (var article in _articles)
             {
-                st.AppendLine(string.Join(Delimiter, article.Analysis, article.Title, $"\"{article.CreatedAt}\"", article.Author, $"\"{article.Content}\""));
+                st.AppendLine(string.Join(Delimiter, article.Entity.Analysis, article.Entity.Title, $"\"{article.Entity.CreatedAt}\"", article.Entity.Author, $"\"{article.Entity.Content}\""));
             }
 
             return st.ToString();

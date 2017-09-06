@@ -4,10 +4,11 @@ namespace Onvista.Parser
 {
     public class Article
     {
-        public Article(string analysis, string title, string createdAt, string author, string content)
+        public Article(string analysis, string title, string relativeUrl, string createdAt, string author, string content)
         {
             Analysis = analysis;
             Title = title;
+            RelativeUrl = relativeUrl;
             CreatedAt = createdAt;
             Author = author;
             Content = content;
@@ -22,6 +23,9 @@ namespace Onvista.Parser
         public string Analysis { get; set; }
 
         public string Title { get; set; }
+
+        [Column(Name = "relative_url")]
+        public string RelativeUrl { get; set; }
 
         [Column(Name = "created_at")]
         public string CreatedAt { get; set; }

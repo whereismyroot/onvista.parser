@@ -26,7 +26,7 @@ namespace Onvista.Parser.Data
         public ICollection<Article> GetEntities(string where)
         {
             string whereClause = string.IsNullOrEmpty(where) ? string.Empty : $"where {where}";
-            string sql = $"select id, title, analysis, author, content, created_at as CreatedAt from articles {whereClause}";
+            string sql = $"select id, title, relative_url as RelativeUrl, analysis, author, content, created_at as CreatedAt from {TableName} {whereClause}";
             var result = _connection.Query<Article>(sql) ?? new List<Article>();
 
             return result.ToList();
@@ -34,13 +34,14 @@ namespace Onvista.Parser.Data
 
         public void Insert(Article entity)
         {
-            string sql = "insert into articles (title, analysis, author, content, created_at)" +
-                         "values (@title, @analysis, @author, @content, @created_at)";
+            string sql = "insert into articles (title, relative_url, analysis, author, content, created_at)" +
+                         "values (@title, @relative_url, @analysis, @author, @content, @created_at)";
 
             _connection.Execute(sql,
                 new
                 {
                     title = entity.Title,
+                    relative_url = entity.RelativeUrl,
                     analysis = entity.Analysis,
                     author = entity.Author,
                     content = entity.Content,

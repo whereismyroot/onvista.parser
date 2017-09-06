@@ -149,7 +149,16 @@ namespace Onvista.Parser
 
                     Article article = GetArticleFromDocument(articleDocument);
 
-                    ParsingResultType type = _existingArticles.Contains(article.Title) ? ParsingResultType.AlreadyExists : ParsingResultType.PendingForSave;
+                    ParsingResultType type = ParsingResultType.AlreadyExists;
+                    if (!_existingArticles.Contains(article.Title))
+                    {
+                        _existingArticles.Add(article.Title);
+                        type = ParsingResultType.PendingForSave;
+                    }
+                    else
+                    {
+                        //debug
+                    }
 
                     resultArticles.Add(new ParsingResult<Article>(article, type));
                 }

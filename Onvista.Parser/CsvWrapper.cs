@@ -16,12 +16,12 @@ namespace Onvista.Parser
         public string GetCsv()
         {
             StringBuilder st = new StringBuilder();
-            string headers = string.Join(Delimiter, nameof(Article.Analysis), nameof(Article.Title), nameof(Article.CreatedAt), nameof(Article.Author), nameof(Article.Content));
+            string headers = string.Join(Delimiter, nameof(Article.Analysis), nameof(Article.Title), nameof(Article.RelativeUrl), nameof(Article.CreatedAt), nameof(Article.Author), nameof(ParsingResult<Article>.ResultType), nameof(Article.Content));
             st.AppendLine(headers);
 
             foreach (var article in _articles)
             {
-                st.AppendLine(string.Join(Delimiter, article.Entity.Analysis, article.Entity.Title, $"\"{article.Entity.CreatedAt}\"", article.Entity.Author, $"\"{article.Entity.Content}\""));
+                st.AppendLine(string.Join(Delimiter, article.Entity.Analysis, $"\"{article.Entity.Title}\"", article.Entity.RelativeUrl, $"\"{article.Entity.CreatedAt}\"", $"\"{article.Entity.Author}\"", article.ResultType, $"\"{article.Entity.Content.Replace("\"", "\"\"")}\""));
             }
 
             return st.ToString();

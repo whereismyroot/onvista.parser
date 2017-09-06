@@ -17,6 +17,7 @@
     {
         None = 0,
         PendingForSave = 1,
-        AlreadyExists = 2
+        AlreadyExists = 2,
+        Saved = 3
     }
 }

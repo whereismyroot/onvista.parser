@@ -27,20 +27,18 @@ namespace Onvista.Parser
 
             Console.WriteLine($"{newsArticles.Count} Articles were parsed.{Environment.NewLine}" +
                               $"PendingForSave: {pendingForSave.Count} | " +
+                              $"Saved: {newsArticles.Count(x => x.ResultType == ParsingResultType.Saved)} | " +
                               $"Already exists: {newsArticles.Count(x => x.ResultType == ParsingResultType.AlreadyExists)} ");
 
             if (pendingForSave.Count > 0)
             {
                 Console.WriteLine("Saving parser results...");
-                bool isSuccess = parser.SaveParsingResults(pendingForSave);
-
-                if (!isSuccess)
-                {
-                    SaveParsedArticlesToCsv(newsArticles);
-                }
-
+                parser.SaveParsingResults(pendingForSave);
+                
                 Console.WriteLine("Done");
             }
+
+            SaveParsedArticlesToCsv(newsArticles);
         }
 
         private static void SaveParsedArticlesToCsv(ICollection<ParsingResult<Article>> articles)
@@ -48,7 +46,7 @@ namespace Onvista.Parser
             string csv = new CsvWrapper(articles).GetCsv();
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"articles-{DateTime.Now:dd.MM.yy HH.mm}.csv");
 
-            File.WriteAllText(filePath, csv);
+            File.WriteAllText(filePath, csv, System.Text.Encoding.UTF8);
 
             Console.WriteLine($"Results were written to {filePath}");
         }

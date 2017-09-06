@@ -15,6 +15,8 @@ namespace Onvista.Parser
             {
                 RequestDelayMs = DefaultRequestDelay;
                 NewsUrl = DefaultNewsUrl;
+                StopParsingOnExisting = true;
+                SaveWithParsing = true;
             }
             else
             {
@@ -34,6 +36,9 @@ namespace Onvista.Parser
                 StopParsingOnExisting = !dictionary.TryGetValue(nameof(StopParsingOnExisting).ToLower(), out string stopParsingOnExisting)
                                         || string.Equals(stopParsingOnExisting, "true", StringComparison.InvariantCultureIgnoreCase);
 
+                SaveWithParsing = !dictionary.TryGetValue(nameof(SaveWithParsing).ToLower(), out string saveWithParsing)
+                                  || string.Equals(saveWithParsing, "true", StringComparison.InvariantCultureIgnoreCase);
+
                 SkipPages = dictionary.TryGetValue(nameof(SkipPages).ToLower(), out string skipPages) 
                     ? int.Parse(skipPages) : 0;
             }
@@ -49,6 +54,8 @@ namespace Onvista.Parser
         public bool StopParsingOnExisting { get; set; }
 
         public int SkipPages { get; set; }
+
+        public bool SaveWithParsing { get; set; }
 
         private IEnumerable<KeyValuePair<string, string>> ParseArgs(string[] args)
         {

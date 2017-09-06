@@ -65,8 +65,6 @@ namespace Onvista.Parser
                     {
                         pagesCount = GetPagesCount(document);
                         pagesCountToParse = pagesToParse.HasValue ? Math.Min(pagesCount, pagesToParse.Value) : pagesCount;
-
-                        _logger.LogInformation($"Parsing of {url} was started. Pages to parse: {pagesCountToParse}");
                     }
 
                     if (skipPages > 0)
@@ -75,11 +73,21 @@ namespace Onvista.Parser
                         continue;
                     }
 
+                    _logger.LogInformation($"Parsing of page {page}/{pagesCountToParse} started.");
+
                     var articles = GetArticlesFromDocument(document, requestDelay);
 
                     resultArticles.AddRange(articles);
 
                     _logger.LogInformation($"Page {page} was parsed. Articles count: {resultArticles.Count}");
+
+                    var articlesToSave = articles.Where(x => x.ResultType == ParsingResultType.PendingForSave).ToList();
+
+                    if (articlesToSave.Any() && parameters.SaveWithParsing)
+                    {
+                        _logger.LogInformation("Saving...");
+                        SaveParsingResults(articlesToSave);
+                    }
 
                     if (stopParsingOnExistingRecord &&
                         articles.Any(x => x.ResultType == ParsingResultType.AlreadyExists))
@@ -103,18 +111,18 @@ namespace Onvista.Parser
 
             try
             {
-                var resultsToSave = parsingResults.Where(x => x.ResultType == ParsingResultType.PendingForSave).ToList();
-
-                foreach (var parsingResult in resultsToSave)
+                foreach (var parsingResult in parsingResults)
                 {
                     parsingResult.Entity.CreatedAt = DateTime.ParseExact(parsingResult.Entity.CreatedAt, ArticleDateFormat, CultureInfo.InvariantCulture)
                         .ToString(MySqlDateFormat);
 
                     _articlesRepository.Insert(parsingResult.Entity);
+
+                    parsingResult.ResultType = ParsingResultType.Saved;
                 }
 
                 success = true;
-                _logger.LogInformation($"{resultsToSave.Count} records were saved");
+                _logger.LogInformation($"{parsingResults.Count} records were saved");
             }
             catch (Exception ex)
             {
@@ -134,7 +142,7 @@ namespace Onvista.Parser
 
                 foreach (var article in existing)
                 {
-                    _existingArticles.Add(article.Title);
+                    _existingArticles.Add(article.RelativeUrl);
                 }
             }
             catch (Exception ex)
@@ -154,12 +162,12 @@ namespace Onvista.Parser
                 {
                     IHtmlDocument articleDocument = GetDocumentFromUrl(url, requestDelay);
 
-                    Article article = GetArticleFromDocument(articleDocument);
+                    Article article = GetArticleFromDocument(url, articleDocument);
 
                     ParsingResultType type = ParsingResultType.AlreadyExists;
-                    if (!_existingArticles.Contains(article.Title))
+                    if (!_existingArticles.Contains(article.RelativeUrl))
                     {
-                        _existingArticles.Add(article.Title);
+                        _existingArticles.Add(article.RelativeUrl);
                         type = ParsingResultType.PendingForSave;
                     }
                     else
@@ -186,13 +194,14 @@ namespace Onvista.Parser
                 }
             }
 
-            Article GetArticleFromDocument(IHtmlDocument articleDocument)
+            Article GetArticleFromDocument(string documentUrl, IHtmlDocument articleDocument)
             {
                 var analysisElement = articleDocument.QuerySelector(".ARTIKEL>article>.analysis");
                 var headlineElement = articleDocument.QuerySelector(".ARTIKEL>article>.headline-large");
                 var timeElement = articleDocument.QuerySelector(".ARTIKEL>article>cite>time");
                 var authorElement = articleDocument.QuerySelector(".ARTIKEL>article>cite>span");
                 var bodyElement = articleDocument.QuerySelector(".ARTIKEL>article>div>div[property=\"schema:articleBody\"]");
+                string relativeUrl = new Uri(documentUrl).LocalPath;
 
                 string analysis = analysisElement.ClassList.Intersect(_analysisValues).FirstOrDefault();
                 string headline = headlineElement.TextContent;
@@ -200,7 +209,7 @@ namespace Onvista.Parser
                 string author = authorElement.TextContent;
                 string body = bodyElement.TextContent;
 
-                return new Article(analysis?.Trim(), headline.Trim(), time.Trim(), author.Trim(), body.Trim());
+                return new Article(analysis?.Trim(), headline.Trim(), relativeUrl, time.Trim(), author.Trim(), body.Trim());
             }
         }
 
